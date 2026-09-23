@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#111827" />
+    <meta name="description" content="一款简洁的 2048 小游戏：合并方块，挑战更高分。" />
+    <title>2048 · 方块之间</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark">▦</span><span>方块之间</span></div>
+        <span class="edition">经典 2048</span>
+      </header>
+
+      <section class="hero" aria-labelledby="title">
+        <div>
+          <p class="eyebrow">一个数字，一步之遥</p>
+          <h1 id="title">2048<span class="title-dot">.</span></h1>
+          <p class="subtitle">滑动方块，合并相同数字。<br />从 2 开始，看看你能走多远。</p>
+        </div>
+        <div class="stats" aria-label="游戏分数">
+          <div class="stat"><span>当前得分</span><strong id="score">0</strong></div>
+          <div class="stat"><span>最高纪录</span><strong id="best">0</strong></div>
+        </div>
+      </section>
+
+      <section class="game" aria-label="2048 游戏">
+        <div class="game-toolbar">
+          <p id="status" role="status" aria-live="polite">合并数字，达到 2048！</p>
+          <div class="actions">
+            <button id="undo" class="button button-quiet" type="button" title="撤销上一步" disabled>↶ <span>撤销</span></button>
+            <button id="restart" class="button button-primary" type="button">新游戏 <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+
+        <div class="board-wrap">
+          <div id="board" class="board" role="grid" aria-label="4 乘 4 的 2048 棋盘"></div>
+          <div id="overlay" class="overlay" hidden>
+            <div class="overlay-card">
+              <span id="overlay-icon" class="overlay-icon" aria-hidden="true">✦</span>
+              <h2 id="overlay-title">太棒了！</h2>
+              <p id="overlay-text">你已经合成了 2048。</p>
+              <div class="overlay-actions">
+                <button id="keep-playing" class="button button-quiet" type="button">继续挑战</button>
+                <button id="play-again" class="button button-primary" type="button">再来一局</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="game-footer">
+          <p><span class="key">↑</span><span class="key">↓</span><span class="key">←</span><span class="key">→</span> 或 <strong>W A S D</strong> 移动</p>
+          <p>手机上可直接滑动棋盘</p>
+        </div>
+      </section>
+
+      <footer class="page-footer">把相同数字碰在一起，创造更大的可能。</footer>
+    </main>
+  </body>
+</html>
