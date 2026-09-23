@@ -9,6 +9,10 @@
   const statusElement = document.querySelector("#status");
   const undoButton = document.querySelector("#undo");
   const overlay = document.querySelector("#overlay");
+  const SLIDE_DURATION = 180;
+  let animationTimer = null;
+  let moving = false;
+  let queuedDirection = null;
 
   const game = {
     board: [],
@@ -60,6 +64,7 @@
   }
 
   function startGame() {
+    stopAnimation();
     game.board = emptyBoard();
     game.score = 0;
     game.previous = null;
@@ -72,28 +77,40 @@
   }
 
   function mergeLine(line) {
-    const values = line.filter((value) => value !== 0);
+    const values = line.map((value, index) => ({ value, index })).filter((tile) => tile.value !== 0);
     const result = [];
+    const movements = [];
+    const mergedPositions = [];
     let earned = 0;
     for (let index = 0; index < values.length; index += 1) {
-      if (values[index] === values[index + 1]) {
-        const merged = values[index] * 2;
+      const target = result.length;
+      movements.push({ from: values[index].index, to: target });
+      if (values[index].value === values[index + 1]?.value) {
+        const merged = values[index].value * 2;
         result.push(merged);
         earned += merged;
+        movements.push({ from: values[index + 1].index, to: target });
+        mergedPositions.push(target);
         index += 1;
       } else {
-        result.push(values[index]);
+        result.push(values[index].value);
       }
     }
     while (result.length < SIZE) result.push(0);
-    return { result, earned };
+    return { result, earned, movements, mergedPositions };
   }
 
   function move(direction) {
+    if (moving) {
+      queuedDirection = direction;
+      return;
+    }
     if (game.over || (game.won && !game.keepPlaying)) return;
 
     const before = game.board.map((row) => [...row]);
     const next = emptyBoard();
+    const movements = [];
+    const mergedTiles = [];
     let earned = 0;
 
     for (let index = 0; index < SIZE; index += 1) {
@@ -105,6 +122,14 @@
       if (reverse) line.reverse();
       const merged = mergeLine(line);
       earned += merged.earned;
+      const cellAt = (position) => {
+        const actual = reverse ? SIZE - 1 - position : position;
+        return horizontal ? [index, actual] : [actual, index];
+      };
+      merged.movements.forEach(({ from, to }) => {
+        movements.push({ from: cellAt(from), to: cellAt(to) });
+      });
+      merged.mergedPositions.forEach((position) => mergedTiles.push(cellAt(position)));
       if (reverse) merged.result.reverse();
       for (let position = 0; position < SIZE; position += 1) {
         if (horizontal) next[index][position] = merged.result[position];
@@ -129,7 +154,58 @@
     addRandomTile();
     if (!game.won && game.board.some((row) => row.includes(2048))) game.won = true;
     game.over = !canMove();
-    render();
+    animateMove(movements, mergedTiles);
+  }
+
+  function stopAnimation() {
+    if (animationTimer !== null) clearTimeout(animationTimer);
+    animationTimer = null;
+    boardElement.querySelectorAll(".tile-ghost").forEach((tile) => tile.remove());
+    boardElement.classList.remove("board-moving");
+    moving = false;
+    queuedDirection = null;
+  }
+
+  function animateMove(movements, mergedTiles) {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      render(mergedTiles);
+      return;
+    }
+
+    const cells = [...boardElement.querySelectorAll(".cell")];
+    const ghosts = movements.map(({ from, to }) => {
+      const source = cells[from[0] * SIZE + from[1]];
+      const destination = cells[to[0] * SIZE + to[1]];
+      const tile = source.cloneNode(true);
+      tile.classList.remove("tile-new", "tile-merged");
+      tile.classList.add("tile-ghost");
+      tile.removeAttribute("role");
+      tile.setAttribute("aria-hidden", "true");
+      tile.style.left = `${source.offsetLeft}px`;
+      tile.style.top = `${source.offsetTop}px`;
+      tile.style.width = `${source.offsetWidth}px`;
+      tile.style.height = `${source.offsetHeight}px`;
+      boardElement.append(tile);
+      return { tile, dx: destination.offsetLeft - source.offsetLeft, dy: destination.offsetTop - source.offsetTop };
+    });
+
+    moving = true;
+    boardElement.classList.add("board-moving");
+    // Commit the starting positions before applying transforms.
+    boardElement.offsetWidth;
+    ghosts.forEach(({ tile, dx, dy }) => {
+      tile.style.transform = `translate(${dx}px, ${dy}px)`;
+    });
+    animationTimer = setTimeout(() => {
+      animationTimer = null;
+      boardElement.querySelectorAll(".tile-ghost").forEach((tile) => tile.remove());
+      boardElement.classList.remove("board-moving");
+      moving = false;
+      render(mergedTiles);
+      const nextDirection = queuedDirection;
+      queuedDirection = null;
+      if (nextDirection) move(nextDirection);
+    }, SLIDE_DURATION);
   }
 
   function canMove() {
@@ -146,6 +222,7 @@
 
   function undo() {
     if (!game.previous) return;
+    stopAnimation();
     game.board = game.previous.board;
     game.score = game.previous.score;
     game.won = game.previous.won;
@@ -156,7 +233,8 @@
     render();
   }
 
-  function render() {
+  function render(mergedTiles = []) {
+    const mergedCells = new Set(mergedTiles.map(([row, column]) => row * SIZE + column));
     boardElement.replaceChildren();
     game.board.forEach((row, rowIndex) => {
       row.forEach((value, columnIndex) => {
@@ -170,6 +248,7 @@
           if (game.newTile?.[0] === rowIndex && game.newTile?.[1] === columnIndex) {
             cell.classList.add("tile-new");
           }
+          if (mergedCells.has(rowIndex * SIZE + columnIndex)) cell.classList.add("tile-merged");
         }
         boardElement.append(cell);
       });

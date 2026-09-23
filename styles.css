@@ -54,10 +54,13 @@ h1 { margin: 0; font-size: clamp(76px, 12vw, 112px); letter-spacing: -.085em; li
 .button-primary:hover { background: #ffd080; }
 
 .board-wrap { position: relative; width: min(100%, 600px); margin: 0 auto; border-radius: 17px; }
-.board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; aspect-ratio: 1; padding: 12px; border: 1px solid #526078; border-radius: 17px; background: #3d4a5e; touch-action: none; user-select: none; box-shadow: 0 20px 60px #03071235, inset 0 2px 8px #0b122025; }
+.board { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; aspect-ratio: 1; padding: 12px; border: 1px solid #526078; border-radius: 17px; background: #3d4a5e; touch-action: none; user-select: none; box-shadow: 0 20px 60px #03071235, inset 0 2px 8px #0b122025; }
 .cell { display: grid; place-items: center; min-width: 0; border-radius: 10px; background: #ffffff19; color: #182333; font-size: clamp(24px, 7vw, 48px); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.05em; }
 .cell.tile { box-shadow: inset 0 -4px 0 #00000010, 0 3px 8px #11182725; }
+.board-moving > .cell.tile:not(.tile-ghost) { visibility: hidden; }
+.tile-ghost { position: absolute; z-index: 1; pointer-events: none; transition: transform 160ms ease-in-out; }
 .tile-new { animation: pop .18s ease-out; }
+.tile-merged { animation: pop .2s ease-out; }
 .tile-2 { background: #f2eadb; }
 .tile-4 { background: #f2dfb9; }
 .tile-8 { background: #f4bd73; }
