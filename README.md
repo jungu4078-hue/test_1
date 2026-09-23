@@ -4,13 +4,13 @@
 
 ## 开始游戏
 
-直接用浏览器打开 `index.html` 即可。也可以在项目目录启动任意静态文件服务器，例如：
+直接用浏览器打开 `index.html` 即可。也可以安装 Node.js 后，在项目目录启动本地服务器：
 
 ```bash
-python -m http.server 8000
+node server.js
 ```
 
-然后访问 <http://localhost:8000>。
+然后访问 <http://127.0.0.1:8000>。按 `Ctrl+C` 可停止服务器。
 
 ## 玩法
 
@@ -29,6 +29,7 @@ python -m http.server 8000
 | `index.html` | 页面结构 |
 | `styles.css` | 响应式布局与方块样式 |
 | `app.js` | 游戏规则、输入处理和界面更新 |
+| `server.js` | 无额外依赖的本地静态服务器 |
 
 ## 浏览器支持
 
